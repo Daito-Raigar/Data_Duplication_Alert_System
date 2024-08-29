@@ -24,10 +24,10 @@ const LoginForm = () => {
                     
                 </div>
 
-                <div className='remember-forgot'>
+                {/* <div className='remember-forgot'>
                     <label><input type='checkbox' />Remember me</label>
                     <Link to='/forgot'>Forgot password?</Link>
-                </div>
+                </div> */}
 
                 <button type='submit'>Login</button>
 

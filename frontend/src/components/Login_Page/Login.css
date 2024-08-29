@@ -1,6 +1,6 @@
 .wrapper2 {
     width: 420px;
-    height: 450px;
+    height: 360px;
     background-color: slateblue;
     color: #fff;
     border-radius: 10px;
@@ -44,7 +44,7 @@
     transform: translateY(-50%);
 }
 
-.wrapper2 .remember-forgot {
+/* .wrapper2 .remember-forgot {
     display: flex;
     justify-content: space-between;
     font-size: 14.5px;
@@ -63,7 +63,7 @@
 
 .remember-forgot a:hover {
     text-decoration: underline;
-}
+} */
 
 .wrapper2 button {
     width: 90%;
@@ -72,7 +72,7 @@
     border: none;
     outline: none;
     border-radius: 50px;
-    margin: 30px 20px;
+    margin: 15px 20px;
     box-shadow: 0 0 10px rgba(0, 0, 10, .10);
     cursor: pointer;
     font-size: 16px;

@@ -15,6 +15,8 @@ const SignupForm = () => {
     const [email, setEmail] = useState(''); //Contains email value for checking
     const [mailVal, setmail] = useState(true); // Used to check 
     const [emailTouch, setEmailTouch] = useState(false); // Track if the email input has been touched
+    const [username, setUsername] = useState(''); 
+    const [message, setMessage] = useState(''); 
 
     const toggle = () => {
         setView(!passView);
@@ -33,14 +35,13 @@ const SignupForm = () => {
         const input = (e.target.value);
         if (/^\d{0,10}$/.test(input)) {
             setPho(input);
-            setPhoVal(phone.length === 10)
         }
     };
 
-    // const PhoneBlur = () => {
-    //     setPhoTouch(true);
-    //     setPhoVal(phone.length === 10)
-    //   };
+    const PhoneBlur = () => {
+        //setPhoTouch(true);
+        setPhoVal(phone.length === 10)
+    };
 
     const handleEmail = (e) => {
         setEmail(e.target.value);
@@ -51,13 +52,55 @@ const SignupForm = () => {
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         setmail(emailRegex.test(email));
     };
+    
+    const handleSignup = async (e) => {
+        e.preventDefault();
+
+        if (password !== confirmPass) {
+            setMessage('Passwords do not match');
+            return;
+        }
+
+        // Check if phone number is valid
+        if (!Phoval) {
+            setMessage('Phone number must be exactly 10 digits.');
+            return;
+        }
+
+        // Check if email is valid
+        if (!mailVal) {
+            setMessage('Please enter a valid email address');
+            return;
+        }
+
+        try {
+            const response = await fetch('http://localhost:5000/api/signup', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    username,
+                    email,
+                    phone_no: phone,
+                    password,
+                }),
+            });
+
+            const data = await response.json();
+            setMessage(data.message);
+        } catch (error) {
+            console.error('Error:', error);
+            setMessage('An error occurred. Please try again.');
+        }
+    };
 
     return(
         <div className='wrapper1'>
-            <form action=''>
+            <form onSubmit={handleSignup}>
                 <h1>Signup</h1>
                 <div className='input-box'>
-                    <input type='text' placeholder='Username' required />
+                    <input type='text' placeholder='Username' onChange={(e) => setUsername(e.target.value)} required />
                     <FaUser className='icon'/>
                 </div>
 
@@ -69,7 +112,7 @@ const SignupForm = () => {
                 
                 
                 <div className='input-box'>
-                    <input type='text' placeholder='Phone No' value={phone} onChange={handlePhone} required />
+                    <input type='text' placeholder='Phone No' value={phone} onChange={handlePhone} onBlur={PhoneBlur} required />
                     <FaMobile className='icon'/>
                     { !Phoval && (<p style={{ color: 'red' }}>Phone number must be exactly 10 digits.</p>)}
                 </div>
@@ -87,6 +130,8 @@ const SignupForm = () => {
                 
 
                 <button type='submit'>Signup</button>
+
+                {message && <p>{message}</p>}
 
                 <div className='register-link'>
                     <p>Already have an account? <Link to='/login'>Login</Link></p>

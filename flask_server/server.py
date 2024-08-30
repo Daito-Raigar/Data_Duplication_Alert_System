@@ -8,9 +8,9 @@ CORS(app, resources={r"/*": {"origins": "http://localhost:3000"}})
 socketio = SocketIO(app, cors_allowed_origins="http://localhost:3000")
 
 # Connect to MongoDB
-client = MongoClient('mongodb+srv://220701112:John_Prathap@sample1.5kney.mongodb.net/?retryWrites=true&w=majority&appName=Sample1')
-db = client['db'] 
-users_collection = db['User_Details'] 
+client = MongoClient('mongodb+srv://ddas:ddas@sample.nnpef.mongodb.net/?retryWrites=true&w=majority&appName=sample')
+db = client['Metadata'] 
+users_collection = db['user_details_collection'] 
 
 @app.route('/api/signup', methods=['POST'])
 def signup():
@@ -32,7 +32,6 @@ def login():
     print(username,"and ", password)
     # Check if the user exists and password matches
     user = users_collection.find_one({"username": username })
-    print(user)
     if user and user["password"] == password:
         user["_id"] = str(user["_id"])
         id = str(user["_id"])

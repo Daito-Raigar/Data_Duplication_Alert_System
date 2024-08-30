@@ -1,13 +1,14 @@
 import React , { useState }from 'react';
 import './Login.css';
 import { FaUser, FaLock, FaUnlock } from "react-icons/fa";
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 const LoginForm = () => {
     const [passView, setView] = useState(false);
     const [username, setUsername] = useState(''); // Username input state
     const [password, setPassword] = useState(''); // Password input state
     const [message, setMessage] = useState(''); // For displaying feedback messages
+    const navigate = useNavigate();
 
     const toggle = () => {
         setView(!passView);
@@ -45,9 +46,8 @@ const LoginForm = () => {
             setMessage(data.message);
 
             // Handle successful login (e.g., redirect, store token, etc.)
-            if (data.success) {
-                // Redirect to homepage or dashboard
-                // Example: window.location.href = '/home';
+            if (response.ok) {
+                navigate('/dashboard')
             }
 
         } catch (error) {

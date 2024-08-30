@@ -61,13 +61,21 @@ const LoginForm = () => {
             <form onSubmit={handleLogin}>
                 <h1>Login</h1>
                 <div className='input-box'>
-                    <input type='text' placeholder='Username' onChange={handleUsername} required />
+                    <input type='text' 
+                        placeholder='Username' 
+                        onChange={handleUsername} 
+                        required 
+                    />
                     <FaUser className='icon'/>
                 </div>
                 <div className='input-box'>
-                    <input type={passView ? 'text' : 'password'} placeholder='Password' onChange={handlePassword} required />
-                    <span onClick={toggle}>{passView ? <FaUnlock className='icon' /> : <FaLock className='icon' />}</span>
-                    
+                    <input type={passView ? 'text' : 'password'} 
+                        placeholder='Password' 
+                        onChange={handlePassword} 
+                        required />
+                    <span onClick={toggle}>
+                        {passView ? <FaUnlock className='icon' /> : <FaLock className='icon' />}
+                    </span>
                 </div>
 
                 {/* <div className='remember-forgot'>

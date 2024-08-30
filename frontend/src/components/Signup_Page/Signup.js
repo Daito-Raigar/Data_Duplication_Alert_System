@@ -2,7 +2,7 @@ import React , { useState }from 'react';
 import './Signup.css';
 import { FaUser, FaLock, FaUnlock, FaMobile } from "react-icons/fa";
 import { MdAlternateEmail } from "react-icons/md";
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 const SignupForm = () => {
     const [passView, setView] = useState(false); //Used to see password
@@ -17,6 +17,7 @@ const SignupForm = () => {
     const [emailTouch, setEmailTouch] = useState(false); // Track if the email input has been touched
     const [username, setUsername] = useState(''); 
     const [message, setMessage] = useState(''); 
+    const navigate = useNavigate();
 
     const toggle = () => {
         setView(!passView);
@@ -89,6 +90,12 @@ const SignupForm = () => {
 
             const data = await response.json();
             setMessage(data.message);
+
+            if (response.ok) {
+                // Redirect to the login page after successful signup
+                navigate('/login');
+            }
+            
         } catch (error) {
             console.error('Error:', error);
             setMessage('An error occurred. Please try again.');

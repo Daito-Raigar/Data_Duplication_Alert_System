@@ -4,11 +4,12 @@ import './index.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
 import AdminDash from './components/AdminDashboard/AdminDashboard';
+import UploadPage from './components/Upload/Upload';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
-    <App />
+    <UploadPage />
   </React.StrictMode>
 );
 

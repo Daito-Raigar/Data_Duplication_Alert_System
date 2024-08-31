@@ -11,6 +11,7 @@ import Upgrade from './components/Bar/Upgrade';
 import UserProfile from './components/Bar/Userprofile';
 import './App.css';
 
+
 const App = () => {
   return (
     <Router>

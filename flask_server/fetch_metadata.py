@@ -6,7 +6,7 @@ from docx import Document
 from pymongo import MongoClient
 
 # MongoDB Atlas connection
-client = MongoClient("mongodb+srv://220701095:220701095@sample1.i1x7y.mongodb.net/?retryWrites=true&w=majority&appName=Sample1")
+client = MongoClient("mongodb+srv://ddas:ddas@sample.nnpef.mongodb.net/?retryWrites=true&w=majority&appName=sample")
 
 # Select the database and collection
 db = client["Metadata"]

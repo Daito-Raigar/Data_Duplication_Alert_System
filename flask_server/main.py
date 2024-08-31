@@ -1,4 +1,3 @@
-# admin_dashboard.py
 from flask import Flask, jsonify, request
 from pymongo import MongoClient
 from flask_cors import CORS
@@ -11,6 +10,7 @@ import hashlib
 import datetime
 import py7zr
 import pandas as pd
+import requests
 import xml.etree.ElementTree as ET
 
 app = Flask(__name__)
@@ -306,7 +306,6 @@ def handle_connect():
 def handle_message(data):
     print('Message received:', data)
     emit('response', {'data': 'Message received'})
-
 
 if __name__ == '__main__':
     socketio.run(app, host='0.0.0.0', port=5000, debug=True)

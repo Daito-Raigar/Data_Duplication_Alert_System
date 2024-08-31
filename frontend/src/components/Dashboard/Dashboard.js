@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Button, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Typography } from '@mui/material';
 import axios from 'axios';
+import { Link } from 'react-router-dom';
 import './Dashboard.css';
 
 const Dashboard = () => {
@@ -17,11 +18,33 @@ const Dashboard = () => {
             });
     }, []);
 
+    const download = (filename) => {
+        // Create a link element
+        const link = document.createElement('a');
+        link.href = `http://localhost:5000/api/download/${filename}`;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
+
     return (
         <div className="dashboard-container">
             <Typography variant="h4" className="dashboard-title">
                 Datasets
             </Typography>
+            <div className="dashboard-buttons">
+                <Link to="/login" style={{ textDecoration: 'none' }}>
+                    <Button variant="contained" color="primary" className="dashboard-button">
+                        Login
+                    </Button>
+                </Link>
+                <Link to="/signup" style={{ textDecoration: 'none' }}>
+                    <Button variant="contained" color="secondary" className="dashboard-button">
+                        Signup
+                    </Button>
+                </Link>
+            </div>
             <TableContainer component={Paper} className="dashboard-table-container">
                 <Table>
                     <TableHead>
@@ -37,12 +60,8 @@ const Dashboard = () => {
                                     {dataset.dataset_name}
                                 </TableCell>
                                 <TableCell align="right">
-                                    <Button variant="contained" color="primary" className="dashboard-button">
-                                        View
-                                    </Button>
-                                    <Button variant="contained" color="secondary" className="dashboard-button">
-                                        Download
-                                    </Button>
+                                    <Button variant="contained" color="primary" className="dashboard-button">View</Button>
+                                    <Button variant="contained" color="secondary" className="dashboard-button" onClick={() =>download(dataset.dataset_name)}>Download</Button>
                                 </TableCell>
                             </TableRow>
                         ))}

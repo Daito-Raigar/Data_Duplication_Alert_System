@@ -1,13 +1,17 @@
 from flask import Flask, request, jsonify, send_file, abort
 import os
+import requests
 from pymongo import MongoClient
-import io
-import zipfile
+from datetime import datetime
 
 app = Flask(__name__)
 
-# Directory where datasets are stored
-DATASET_DIRECTORY = "./datasets"
+# Base directory where datasets are stored
+DATASET_DIRECTORY = "C:/SharedDatasets"
+
+# Ensure the base dataset directory exists
+if not os.path.exists(DATASET_DIRECTORY):
+    os.makedirs(DATASET_DIRECTORY)
 
 # MongoDB connection details
 MONGO_URI = "mongodb+srv://ddas:ddas@sample.nnpef.mongodb.net/?retryWrites=true&w=majority&appName=sample"
@@ -19,33 +23,57 @@ client = MongoClient(MONGO_URI)
 db = client[DATABASE_NAME]
 collection = db[COLLECTION_NAME]
 
+# Server URL for communication
+SERVER_URL = 'http://192.168.74.42:5000'  # Ensure this is correctly formatted
+
+def query_server_api(endpoint, method='GET', params=None):
+    url = f"{SERVER_URL}/{endpoint}"
+    try:
+        response = requests.request(method, url, params=params)
+        return response.json(), response.status_code
+    except requests.RequestException as e:
+        return {'error': str(e)}, 500
+
+@app.route('/api/create_repository', methods=['POST'])
+def create_repository():
+    try:
+        client_ip = request.remote_addr
+        if client_ip:
+            client_repo_path = os.path.join(DATASET_DIRECTORY, client_ip)
+            if not os.path.exists(client_repo_path):
+                os.makedirs(client_repo_path)
+                return jsonify({"message": "Repository created successfully!"}), 201
+            return jsonify({"message": "Repository already exists!"}), 200
+        return jsonify({"message": "Failed to create repository."}), 400
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 @app.route('/api/datasets', methods=['GET'])
 def list_datasets():
     try:
-        datasets = [f for f in os.listdir(DATASET_DIRECTORY) if os.path.isfile(os.path.join(DATASET_DIRECTORY, f))]
-        print("Datasets listed:", datasets)  # Debug print
-        return jsonify({'datasets': datasets})
+        data, status_code = query_server_api("api/datasets")
+        return jsonify(data), status_code
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
 @app.route('/api/check/<filename>', methods=['GET'])
 def check_dataset(filename):
     try:
-        result = collection.find_one({'filename': filename})
-        if result:
-            return jsonify({'message': 'Dataset already downloaded.'}), 409
-        return jsonify({'message': 'Dataset is not downloaded.'}), 200
+        data, status_code = query_server_api(f"api/check/{filename}")
+        if status_code == 409:
+            return jsonify(data), 409
+        return jsonify(data), 200
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
 @app.route('/api/download/<filename>', methods=['GET'])
 def download_dataset(filename):
     try:
-        file_path = os.path.join(DATASET_DIRECTORY, filename)
-        if os.path.exists(file_path):
-            # Insert record in MongoDB
-            collection.insert_one({'filename': filename, 'client_ip': request.remote_addr})
-            return send_file(file_path, as_attachment=True)
+        data, status_code = query_server_api(f"api/download/{filename}")
+        if status_code == 409:
+            return jsonify(data), 409
+        elif status_code == 200:
+            return send_file(data['path'], as_attachment=True)
         return abort(404)
     except Exception as e:
         return jsonify({'error': str(e)}), 500
@@ -53,52 +81,11 @@ def download_dataset(filename):
 @app.route('/api/check_all', methods=['GET'])
 def check_all_datasets():
     try:
-        datasets = os.listdir(DATASET_DIRECTORY)
-        already_downloaded = []
-        not_downloaded = []
-
-        for filename in datasets:
-            result = collection.find_one({'filename': filename})
-            if result:
-                already_downloaded.append(filename)
-            else:
-                not_downloaded.append(filename)
-
-        return jsonify({
-            "already_downloaded": already_downloaded,
-            "not_downloaded": not_downloaded
-        })
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
-    
-@app.route('/api/download_all', methods=['GET'])
-def download_all_datasets():
-    try:
-        datasets = os.listdir(DATASET_DIRECTORY)
-        downloaded = []
-        already_downloaded = []
-
-        # Create an in-memory ZIP file
-        memory_zip = io.BytesIO()
-        with zipfile.ZipFile(memory_zip, 'w', zipfile.ZIP_DEFLATED) as zipf:
-            for filename in datasets:
-                result = collection.find_one({'filename': filename})
-                if result:
-                    already_downloaded.append(filename)
-                else:
-                    file_path = os.path.join(DATASET_DIRECTORY, filename)
-                    if os.path.exists(file_path):
-                        zipf.write(file_path, filename)
-                        collection.insert_one({'filename': filename, 'client_ip': request.remote_addr})
-                        downloaded.append(filename)
-
-        # Move the cursor to the beginning of the BytesIO object
-        memory_zip.seek(0)
-
-        return send_file(memory_zip, as_attachment=True, download_name="datasets.zip", mimetype='application/zip')
+        data, status_code = query_server_api("api/check_all")
+        return jsonify(data), status_code
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
 if __name__ == "__main__":
     print("Starting Flask app...")
-    app.run(host='192.168.74.42', port=5000, debug=True)  # Ensure this is different from server.py
+    app.run(host='192.168.74.42', port=5001, debug=True)

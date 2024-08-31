@@ -10,6 +10,7 @@ import CollabWork from './components/Bar/CollabWork';
 import Upgrade from './components/Bar/Upgrade';
 import UserProfile from './components/Bar/UserProfile';
 import Sidebar from './components/Side_bar/Sidebar';
+import AdminDash from './components/AdminDashboard/AdminDashboard';
 //import './App.css';
 
 const App = () => {
@@ -24,7 +25,7 @@ const AppContent = () => {
   const location = useLocation();
 
   // Determine whether to show the sidebar
-  const showSidebar = location.pathname !== '/' && location.pathname !== '/login' && location.pathname !== '/signup';
+  const showSidebar = location.pathname === '/dashboard';
 
   return (
     <div style={{ display: 'flex', height:'auto' }}>
@@ -35,7 +36,7 @@ const AppContent = () => {
         <Route path='/login' element={<LoginForm />} /> {/*navigate to Login page */}
         <Route path='/signup' element={<SignupForm />} />
         <Route path='/dashboard' element={<Dashboard />} />
-        {/* <Route path='/forgot' element={<Forgot />} /> navigate to Forgot Password page */}
+        <Route path='/admindash' element={<AdminDash />} />
         <Route path="/settings" element={<Settings />} />
         <Route path="/collab-work" element={<CollabWork />} />
         <Route path="/upgrade" element={<Upgrade />} />

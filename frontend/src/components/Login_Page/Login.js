@@ -24,8 +24,7 @@ const LoginForm = () => {
 
     const handleLogin = async (e) => {
         e.preventDefault();
-
-        // Send login data to the backend
+    
         try {
             const response = await fetch('http://localhost:5000/api/login', {
                 method: 'POST',
@@ -37,24 +36,32 @@ const LoginForm = () => {
                     password,
                 }),
             });
-
+    
             if (!response.ok) {
                 throw new Error(`HTTP error! Status: ${response.status}`);
             }
-
+    
             const data = await response.json();
-            setMessage(data.message);
-
-            // Handle successful login (e.g., redirect, store token, etc.)
+    
             if (response.ok) {
-                navigate('/dashboard')
+                const userRole = data.role;
+                if (userRole === 'admin') {
+                    navigate('/AdminDash');
+                } else if (userRole === 'employee') {
+                    navigate('/dashboard');
+                } else {
+                    setMessage('Unknown role.');
+                }
+            } else {
+                setMessage(data.message);
             }
-
+    
         } catch (error) {
             console.error('Error:', error);
             setMessage('An error occurred. Please try again.');
         }
     };
+    
 
     return(
         <div className='wrapper2'>

@@ -34,9 +34,15 @@ def login():
     user = users_collection.find_one({"username": username })
     if user and user["password"] == password:
         user["_id"] = str(user["_id"])
+        role = user.get("role", "").strip().lower()
         id = str(user["_id"])
         print(id)
-        return jsonify({"message": "Login successful", "user": id})
+        if role == 'admin':
+            return jsonify({"message": "Login successful", "role": "admin", "user_id": user["_id"]})
+        elif role == 'employee':
+            return jsonify({"message": "Login successful", "role": "employee", "user_id": user["_id"]})
+        else:
+            return jsonify({"message": "Unknown role", "success": False}), 401
     else:
         return jsonify({"message": "Invalid credentials", "success": False}), 401
 

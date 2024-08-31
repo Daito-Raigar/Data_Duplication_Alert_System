@@ -1,147 +1,118 @@
-import os
-import pandas as pd
-import json
-import xml.etree.ElementTree as ET
-from docx import Document
+from flask import Flask, request, jsonify
 from pymongo import MongoClient
+from flask_cors import CORS
+from docx import Document
+from lxml import etree
+import json
+import os
+import hashlib
+import datetime
+import py7zr  # For handling 7z compressed files
+
+app = Flask(__name__)
+CORS(app)  # To allow cross-origin requests
 
 # MongoDB Atlas connection
-client = MongoClient("mongodb+srv://220701095:220701095@sample1.i1x7y.mongodb.net/?retryWrites=true&w=majority&appName=Sample1")
+client = MongoClient('mongodb+srv://ddas:ddas@sample.nnpef.mongodb.net/?retryWrites=true&w=majority&appName=sample')
+db = client['Metadata']
+collection = db['Metadata_collection']
 
-# Select the database and collection
-db = client["Metadata"]
-collection = db["Metadata_collection"]
+def get_file_metadata(file_path):
+    try:
+        stat_info = os.stat(file_path)
+        return {
+            "creationDate": datetime.datetime.fromtimestamp(stat_info.st_ctime).isoformat(),
+            "lastModifiedDate": datetime.datetime.fromtimestamp(stat_info.st_mtime).isoformat(),
+            "filePath": file_path,
+            "filePermissions": oct(stat_info.st_mode)[-3:],
+            "fileOwner": stat_info.st_uid,
+            "fileSize": stat_info.st_size,
+            "checksumMD5": compute_checksum(file_path, 'md5'),
+            "checksumSHA1": compute_checksum(file_path, 'sha1')
+        }
+    except Exception as e:
+        return {"error": str(e)}
 
-# Extract metadata for CSV files
-def extract_metadata_csv(file_path):
-    if not os.path.exists(file_path):
-        print(f"File not found: {file_path}")
-        return None
-    
-    file_name = os.path.basename(file_path)
-    file_size = os.path.getsize(file_path)
-    df = pd.read_csv(file_path)
-    num_rows, num_columns = df.shape
-    
-    metadata = {
-        "dataset_name": file_name,
-        "file_location": file_path,
-        "size_bytes": file_size,
-        "num_rows": num_rows,
-        "num_columns": num_columns,
-        "upload_date": pd.Timestamp.now().strftime('%Y-%m-%d %H:%M:%S')
-    }
-    
-    return metadata
+def compute_checksum(file_path, algo):
+    hash_func = hashlib.md5() if algo == 'md5' else hashlib.sha1()
+    with open(file_path, 'rb') as f:
+        for chunk in iter(lambda: f.read(4096), b""):
+            hash_func.update(chunk)
+    return hash_func.hexdigest()
 
-# Extract metadata for Word files
-def extract_metadata_docx(file_path):
-    if not os.path.exists(file_path):
-        print(f"File not found: {file_path}")
-        return None
-    
-    file_name = os.path.basename(file_path)
-    file_size = os.path.getsize(file_path)
-    doc = Document(file_path)
+def get_docx_metadata(file):
+    doc = Document(file)
     num_paragraphs = len(doc.paragraphs)
+    return {"type": "docx", "paragraphs": num_paragraphs}
+
+def get_xml_metadata(file):
+    try:
+        tree = etree.parse(file)
+        root = tree.getroot()
+        num_elements = len(root.findall('.//*'))
+        return {"type": "xml", "elements": num_elements}
+    except Exception as e:
+        return {"type": "xml", "error": str(e)}
+
+def get_json_metadata(file):
+    try:
+        data = json.load(file)
+        num_keys = len(data) if isinstance(data, dict) else len(data)
+        return {"type": "json", "keys": num_keys}
+    except Exception as e:
+        return {"type": "json", "error": str(e)}
+
+def get_compression_info(file_path):
+    try:
+        with py7zr.SevenZipFile(file_path, 'r') as archive:
+            compressed_size = sum([entry.size for entry in archive.list()])  # Example of compression info
+        return {"compression": "7z", "compressedSize": compressed_size}
+    except Exception as e:
+        return {"compression": "unknown", "error": str(e)}
+
+@app.route('/api/upload', methods=['POST'])
+def upload_file():
+    if 'file' not in request.files:
+        return jsonify({"message": "No file part"}), 400
+
+    file = request.files['file']
+    upload_folder = 'uploads'
+    file_path = os.path.join(upload_folder, file.filename)
     
-    metadata = {
-        "dataset_name": file_name,
-        "file_location": file_path,
-        "size_bytes": file_size,
-        "num_paragraphs": num_paragraphs,
-        "upload_date": pd.Timestamp.now().strftime('%Y-%m-%d %H:%M:%S')
+     # Ensure the 'uploads/' directory exists
+    if not os.path.exists(upload_folder):
+        os.makedirs(upload_folder)
+    
+    # Save the file to a temporary location
+    file.save(file_path)
+    
+    if file.filename.endswith('.7z'):
+        compression_info = get_compression_info(file_path)
+    else:
+        compression_info = {"compression": "none"}
+
+    # Extract metadata
+    file_metadata = {
+        "name": file.filename,
+        "size": len(file.read()),
+        "type": file.content_type,
+        "lastModified": request.form.get('lastModified', 'Unknown'),
+        **get_file_metadata(file_path),
+        **compression_info
     }
     
-    return metadata
-
-# Extract metadata for XML files
-def extract_metadata_xml(file_path):
-    if not os.path.exists(file_path):
-        print(f"File not found: {file_path}")
-        return None
+    # Extract specific metadata based on file type
+    if file.content_type == 'application/json':
+        file_metadata.update(get_json_metadata(file))
+    elif file.content_type == 'application/xml':
+        file_metadata.update(get_xml_metadata(file))
+    elif file.content_type == 'application/vnd.openxmlformats-officedocument.wordprocessingml.document':
+        file_metadata.update(get_docx_metadata(file))
+    # Add more types as needed
     
-    file_name = os.path.basename(file_path)
-    file_size = os.path.getsize(file_path)
-    tree = ET.parse(file_path)
-    root = tree.getroot()
-    num_elements = len(list(root.iter()))
-    
-    metadata = {
-        "dataset_name": file_name,
-        "file_location": file_path,
-        "size_bytes": file_size,
-        "num_elements": num_elements,
-        "upload_date": pd.Timestamp.now().strftime('%Y-%m-%d %H:%M:%S')
-    }
-    
-    return metadata
+    collection.insert_one(file_metadata)
 
-# Extract metadata for JSON files
-def extract_metadata_json(file_path):
-    if not os.path.exists(file_path):
-        print(f"File not found: {file_path}")
-        return None
-    
-    file_name = os.path.basename(file_path)
-    file_size = os.path.getsize(file_path)
-    with open(file_path, 'r') as f:
-        data = json.load(f)
-    num_elements = len(data)
-    
-    metadata = {
-        "dataset_name": file_name,
-        "file_location": file_path,
-        "size_bytes": file_size,
-        "num_elements": num_elements,
-        "upload_date": pd.Timestamp.now().strftime('%Y-%m-%d %H:%M:%S')
-    }
-    
-    return metadata
+    return jsonify({"message": "File successfully uploaded"}), 200
 
-# Upload metadata to MongoDB
-def upload_metadata(metadata):
-    if metadata:
-        try:
-            # Check if metadata for this file already exists
-            existing_metadata = collection.find_one({"dataset_name": metadata['dataset_name']})
-            if existing_metadata:
-                print(f"Metadata for {metadata['dataset_name']} already exists.")
-            else:
-                collection.insert_one(metadata)
-                print(f"Uploaded metadata for: {metadata['dataset_name']}")
-        except Exception as e:
-            print(f"Error uploading metadata: {e}")
-# Scan directory for files
-def scan_directory(directory_path):
-    datasets = {}
-    for file_name in os.listdir(directory_path):
-        file_path = os.path.join(directory_path, file_name)
-        if file_name.endswith('.csv'):
-            datasets[file_name] = (file_path, extract_metadata_csv)
-        elif file_name.endswith('.docx'):
-            datasets[file_name] = (file_path, extract_metadata_docx)
-        elif file_name.endswith('.xml'):
-            datasets[file_name] = (file_path, extract_metadata_xml)
-        elif file_name.endswith('.json'):
-            datasets[file_name] = (file_path, extract_metadata_json)
-    return datasets
-
-# Process all datasets in the specified directory
-def process_directory_datasets(directory_path):
-    datasets = scan_directory(directory_path)
-    if not datasets:
-        print("No supported files found in the directory.")
-    for dataset_name, (file_path, metadata_function) in datasets.items():
-        print(f"Processing dataset: {dataset_name} at {file_path}")
-        metadata = metadata_function(file_path)
-        upload_metadata(metadata)
-
-# Example usage
-directory_path = 'D:/ML Tutorials'  # Update with the correct directory path
-process_directory_datasets(directory_path)
-
-# Verify upload
-print("Documents in MongoDB:")
-for doc in collection.find():
-    print(doc)
+if __name__ == '__main__':
+    app.run(debug=True, port=5000)

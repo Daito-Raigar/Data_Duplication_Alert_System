@@ -17,7 +17,8 @@ const SignupForm = () => {
     const [emailTouch, setEmailTouch] = useState(false); // Track if the email input has been touched
     const [username, setUsername] = useState(''); 
     const [message, setMessage] = useState(''); 
-    const navigate = useNavigate();
+    const navigate = useNavigate(); //Used to navigate between different page
+    const [role, setRole] = useState(''); //Used to assign role for each user
 
     const toggle = () => {
         setView(!passView);
@@ -74,6 +75,11 @@ const SignupForm = () => {
             return;
         }
 
+        if (!role) {
+            setMessage('Please select a role');
+            return;
+        }
+
         try {
             const response = await fetch('http://localhost:5000/api/signup', {
                 method: 'POST',
@@ -85,6 +91,7 @@ const SignupForm = () => {
                     email,
                     phone_no: phone,
                     password,
+                    role,
                 }),
             });
 
@@ -114,14 +121,22 @@ const SignupForm = () => {
                 <div className={`input-box ${mailVal ? '' : 'invalid'}`}>
                     <input type='text' placeholder='Email ID' value={email} onChange={handleEmail} onBlur={EmailBlur} required/>
                     <MdAlternateEmail className='icon' />
-                    { emailTouch && !mailVal && <p style={{ color: 'red' }}>Please enter a valid email address</p>}
+                    { emailTouch && !mailVal && <p className='error-message'>Please enter a valid email address</p>}
                 </div>
                 
-                
-                <div className='input-box'>
+                {/* <div className='input-box'>
                     <input type='text' placeholder='Phone No' value={phone} onChange={handlePhone} onBlur={PhoneBlur} required />
                     <FaMobile className='icon'/>
-                    { !Phoval && (<p style={{ color: 'red' }}>Phone number must be exactly 10 digits.</p>)}
+                    { !Phoval && (<p className='error-message'>Phone number must be exactly 10 digits.</p>)}
+                </div> */}
+
+                <div className='input-box'>
+                    <label htmlFor='role'>Select Role:</label>
+                    <select id='role' value={role} onChange={(e) => setRole(e.target.value)} required>
+                        <option value=''>Select your role</option>
+                        <option value='admin'>Admin</option>
+                        <option value='employee'>Employee</option>
+                    </select>
                 </div>
 
                 <div className='input-box'>
@@ -132,7 +147,7 @@ const SignupForm = () => {
                 <div className='input-box'>
                     <input type={passView ? 'text' : 'password'} placeholder='Confirm Password' value={confirmPass} onChange={handleConfirmPass} required />
                     <span onClick={toggle}>{passView ? <FaUnlock className='icon' /> : <FaLock className='icon' />}</span>
-                    {!match && <p style={{ color: 'red' }}>Passwords do not match</p>}
+                    {!match && <p className='error-message'>Passwords do not match</p>}
                 </div>
                 
 

@@ -113,7 +113,7 @@ def check_admin_dataset(filename):
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-@app.route('/api/check_shared/<filename>', methods=['GET'])
+@app.route('/api/check_shared/<filename>', methods=['POST'])
 def check_shared_dataset(filename):
     try:
         shared_file_path = os.path.join(SHARED_DIRECTORY, filename)
@@ -123,7 +123,7 @@ def check_shared_dataset(filename):
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-@app.route('/api/check_all', methods=['GET'])
+@app.route('/api/check_all', methods=['POST'])
 def check_all_datasets():
     try:
         datasets = os.listdir(ADMIN_DATASET_DIRECTORY)
@@ -150,7 +150,7 @@ def check_all_datasets():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-@app.route('/api/download/<filename>', methods=['GET'])
+@app.route('/api/download/<filename>', methods=['POST'])
 def download_dataset(filename):
     try:
         admin_file_path = os.path.join(ADMIN_DATASET_DIRECTORY, filename)
@@ -186,7 +186,7 @@ def download_dataset(filename):
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-@app.route('/datasets/<path:filename>', methods=['GET'])
+@app.route('/datasets/<path:filename>', methods=['POST'])
 def serve_file(filename):
     try:
         file_path = os.path.join(SHARED_DIRECTORY, filename)

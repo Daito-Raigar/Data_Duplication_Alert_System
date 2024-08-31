@@ -21,7 +21,7 @@ socketio = SocketIO(app, cors_allowed_origins="http://localhost:3000")
 client = MongoClient("mongodb+srv://ddas:ddas@sample.nnpef.mongodb.net/?retryWrites=true&w=majority&appName=sample")
 db = client['Metadata']
 collection = db['Metadata_collection']
-users_collection = db['user_details_collection'] 
+users_collection = db['user_details_collection']
 
 # File Metadata Extraction Functions
 def get_file_metadata(file_path):
@@ -283,11 +283,11 @@ def login():
         user["_id"] = str(user["_id"])
         role = user.get("role", "").strip().lower()
         id = str(user["_id"])
-        print(id)
+
         if role == 'admin':
-            return jsonify({"message": "Login successful", "role": "admin", "user_id": user["_id"]})
+            return jsonify({"message": "Login successful", "role": "admin", "user_id": id})
         elif role == 'employee':
-            return jsonify({"message": "Login successful", "role": "employee", "user_id": user["_id"]})
+            return jsonify({"message": "Login successful", "role": "employee", "user_id": id})
         else:
             return jsonify({"message": "Unknown role", "success": False}), 401
     else:
@@ -298,9 +298,9 @@ def handle_connect():
     print("Client connected")
     emit('response', {'data': 'Connected to WebSocket server'})
 
-#@socketio.on('disconnect')
-#def handle_disconnect():
-   # print("Client disconnected")
+@socketio.on('disconnect')
+def handle_disconnect():
+   print("Client disconnected")
 
 @socketio.on('message')
 def handle_message(data):

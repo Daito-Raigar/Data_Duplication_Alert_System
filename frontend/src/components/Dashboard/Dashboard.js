@@ -1,15 +1,25 @@
 import React, { useEffect, useState } from 'react';
 import { Button, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Typography } from '@mui/material';
 import axios from 'axios';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import './Dashboard.css';
 
 const Dashboard = () => {
     const [datasets, setDatasets] = useState([]);
+    // const [loggedIn, setLoggedIn] = useState(false);
+    // const navigate = useNavigate();
 
     useEffect(() => {
-        // Fetch the metadata from the Flask API
-        axios.get('http://localhost:5000/api/metadata')
+        // Check login status
+        axios.get('http://localhost:5000/api/check_login_status')
+            .then(response => {
+                setDatasets(response.data.loggedIn);
+            })
+            .catch(error => {
+                console.error("There was an error fetching the metadata!", error);
+            });
+        
+            axios.get('http://localhost:5000/api/metadata')
             .then(response => {
                 setDatasets(response.data);
             })
@@ -28,23 +38,47 @@ const Dashboard = () => {
         document.body.removeChild(link);
     };
 
+    // const handleLogout = async () => {
+    //     try {
+    //         const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+    //         if (currentUser && currentUser.id) {
+    //             await fetch('http://localhost:5000/api/update_login_state', {
+    //                 method: 'POST',
+    //                 headers: {
+    //                     'Content-Type': 'application/json',
+    //                 },
+    //                 body: JSON.stringify({
+    //                     user_id: currentUser.id,
+    //                     is_logged_in: false,
+    //                 }),
+    //             });
+    //             // Clear the local storage and update state
+    //             localStorage.removeItem('currentUser');
+    //             setLoggedIn(false);
+    //             navigate('/login');
+    //         }
+    //     } catch (error) {
+    //         console.error('Error:', error);
+    //     }
+    // };
+
     return (
         <div className="dashboard-container">
             <Typography variant="h4" className="dashboard-title">
                 Datasets
             </Typography>
-            <div className="dashboard-buttons">
-                <Link to="/login" style={{ textDecoration: 'none' }}>
-                    <Button variant="contained" color="primary" className="dashboard-button">
-                        Login
-                    </Button>
-                </Link>
-                <Link to="/signup" style={{ textDecoration: 'none' }}>
-                    <Button variant="contained" color="secondary" className="dashboard-button">
-                        Signup
-                    </Button>
-                </Link>
-            </div>
+            {/* {!loggedIn ? (
+                <div className="dashboard-buttons">
+                    <Link to="/login" style={{ textDecoration: 'none' }}>
+                        <Button variant="contained" color="primary" className="dashboard-button">Login</Button>
+                    </Link>
+                    <Link to="/signup" style={{ textDecoration: 'none' }}>
+                        <Button variant="contained" color="secondary" className="dashboard-button">Signup</Button>
+                    </Link>
+                </div>
+            ) : (
+                <Button variant="contained" color="secondary" className="dashboard-button" onClick={handleLogout}>Logout</Button>
+            )} */}
             <TableContainer component={Paper} className="dashboard-table-container">
                 <Table>
                     <TableHead>

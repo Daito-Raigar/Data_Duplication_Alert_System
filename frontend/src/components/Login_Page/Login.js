@@ -1,6 +1,6 @@
-import React , { useState }from 'react';
+import React, { useState } from 'react';
 import './Login.css';
-import { FaUser, FaLock, FaUnlock } from "react-icons/fa";
+import { FaUser, FaLock, FaUnlock } from 'react-icons/fa';
 import { Link, useNavigate } from 'react-router-dom';
 
 const LoginForm = () => {
@@ -12,9 +12,9 @@ const LoginForm = () => {
 
     const toggle = () => {
         setView(!passView);
-      };
+    };
 
-      const handleUsername = (e) => {
+    const handleUsername = (e) => {
         setUsername(e.target.value);
     };
 
@@ -36,39 +36,54 @@ const LoginForm = () => {
                     password,
                 }),
             });
-    
-            if (!response.ok) {
-                throw new Error(`HTTP error! Status: ${response.status}`);
-            }
-    
+
             const data = await response.json();
-    
-            if (response.ok) {
-                const userRole = data.role;
-                if (userRole === 'admin') {
-                    navigate('/AdminDash');
-                } else if (userRole === 'employee') {
-                    navigate('/dashboard');
-                } else {
-                    setMessage('Unknown role.');
-                }
-            } else {
-                setMessage(data.message);
+
+            if (!response.ok) {
+                setMessage(data.message || 'An error occurred. Please try again.');
+                return;
             }
-    
+
+            // Uncomment if you need to handle session state updates
+            /*
+            if (data.is_logged_in) {
+                setMessage('User is already logged in on another system.');
+                return;
+            }
+
+            await fetch('http://localhost:5000/api/update_login_state', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    user_id: data.user_id,
+                    is_logged_in: true,
+                }),
+            });
+            */
+
+            const userRole = data.role;
+            if (userRole === 'admin') {
+                navigate('/AdminDash');
+            } else if (userRole === 'employee') {
+                navigate('/dashboard');
+            } else {
+                setMessage('Unknown role.');
+            }
         } catch (error) {
             console.error('Error:', error);
             setMessage('An error occurred. Please try again.');
         }
     };
-    
 
-    return(
+    return (
         <div className='wrapper2'>
             <form onSubmit={handleLogin}>
                 <h1>Login</h1>
                 <div className='input-box'>
-                    <input type='text' 
+                    <input 
+                        type='text' 
                         placeholder='Username' 
                         onChange={handleUsername} 
                         required 
@@ -76,19 +91,16 @@ const LoginForm = () => {
                     <FaUser className='icon'/>
                 </div>
                 <div className='input-box'>
-                    <input type={passView ? 'text' : 'password'} 
+                    <input 
+                        type={passView ? 'text' : 'password'} 
                         placeholder='Password' 
                         onChange={handlePassword} 
-                        required />
+                        required 
+                    />
                     <span onClick={toggle}>
                         {passView ? <FaUnlock className='icon' /> : <FaLock className='icon' />}
                     </span>
                 </div>
-
-                {/* <div className='remember-forgot'>
-                    <label><input type='checkbox' />Remember me</label>
-                    <Link to='/forgot'>Forgot password?</Link>
-                </div> */}
 
                 <button type='submit'>Login</button>
 

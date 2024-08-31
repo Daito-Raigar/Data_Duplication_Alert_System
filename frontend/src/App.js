@@ -25,7 +25,7 @@ const AppContent = () => {
   const location = useLocation();
 
   // Determine whether to show the sidebar
-  const showSidebar = location.pathname === '/dashboard';
+  const showSidebar = location.pathname !== '/admindash' && location.pathname !== '/login' && location.pathname !== '/signup' && location.pathname !== '/';
 
   return (
     <div style={{ display: 'flex', height:'auto' }}>

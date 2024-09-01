@@ -3,8 +3,8 @@
     flex: 1;
     padding: 20px;
     background-color: #ecf0f1;
-    width: 100vh;
-    height: auto;
+    width: 500%;
+    height: 150vh;
 }
 
 .dashboard-title {

@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import './Upload.css'
+import './Upload.css';
 
 const UploadPage = () => {
     const [selectedFile, setSelectedFile] = useState(null);
     const [fileMetadata, setFileMetadata] = useState({});
+    const [isDragging, setIsDragging] = useState(false);
 
     const handleFileChange = (e) => {
         const file = e.target.files[0];
@@ -13,21 +14,38 @@ const UploadPage = () => {
         }
     };
 
+    const handleDragOver = (e) => {
+        e.preventDefault();
+        setIsDragging(true);
+    };
+
+    const handleDragLeave = (e) => {
+        e.preventDefault();
+        setIsDragging(false);
+    };
+
+    const handleDrop = (e) => {
+        e.preventDefault();
+        setIsDragging(false);
+        const file = e.dataTransfer.files[0];
+        if (file) {
+            setSelectedFile(file);
+            getFileMetadata(file);
+        }
+    };
+
+    const handleBrowseClick = () => {
+        document.getElementById('fileInput').click();
+    };
+
     const getFileMetadata = (file) => {
-        // Create a FileReader to read the file
-        const reader = new FileReader();
-        reader.onload = () => {
-            const fileContent = reader.result;
-            // Assuming you are only handling text-based files for simplicity
-            const metadata = {
-                name: file.name,
-                size: file.size,
-                type: file.type,
-                lastModified: file.lastModified
-            };
-            setFileMetadata(metadata);
+        const metadata = {
+            name: file.name,
+            size: file.size,
+            type: file.type,
+            lastModified: file.lastModified
         };
-        reader.readAsArrayBuffer(file); // Or use other methods depending on file type
+        setFileMetadata(metadata);
     };
 
     const handleUpload = async () => {
@@ -56,11 +74,32 @@ const UploadPage = () => {
     };
 
     return (
-        <div>
-            <h1>Upload Page</h1>
-            <input type="file" onChange={handleFileChange} />
+        <div className="upload-container">
+            <div className="upload-header">
+                <h2>Uploads</h2>
+                <p>Your uploads must be 800x600</p>
+                <p>Accepted formats: JPG, PNG, PDF</p>
+            </div>
+            <div
+                className={`upload-dropzone ${isDragging ? 'dragging' : ''}`}
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDrop}
+                onClick={handleBrowseClick}
+            >
+                <img src="your-image-path.jpg" alt="Upload formats" className="upload-icon" />
+                <p>
+                    Drag your file here or <span className="browse-link" onClick={handleBrowseClick}>browse</span> for a file.
+                </p>
+                <input
+                    id="fileInput"
+                    type="file"
+                    onChange={handleFileChange}
+                    style={{ display: 'none' }}
+                />
+            </div>
             {selectedFile && (
-                <div>
+                <div className="file-metadata">
                     <h2>File Metadata:</h2>
                     <p>Name: {fileMetadata.name}</p>
                     <p>Size: {fileMetadata.size} bytes</p>

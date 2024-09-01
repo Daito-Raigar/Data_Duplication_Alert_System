@@ -1,90 +1,56 @@
 import React, { useEffect, useState } from 'react';
-import { Button, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Typography } from '@mui/material';
+import { Button, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Typography, MenuItem, Select } from '@mui/material';
 import axios from 'axios';
-import { Link, useNavigate } from 'react-router-dom';
 import './Dashboard.css';
 
 const Dashboard = () => {
     const [datasets, setDatasets] = useState([]);
-    // const [loggedIn, setLoggedIn] = useState(false);
-    // const navigate = useNavigate();
+    const [formatFilter, setFormatFilter] = useState('all');
 
     useEffect(() => {
-        // Check login status
-        axios.get('http://localhost:5000/api/check_login_status')
+        // Fetch the metadata from the Flask API with the current format filter
+        axios.get(`http://localhost:5000/api/metadata?format=${formatFilter}`)
             .then(response => {
-                setDatasets(response.data.loggedIn);
-            })
-            .catch(error => {
-                console.error("There was an error fetching the metadata!", error);
-            });
-        
-            axios.get('http://localhost:5000/api/metadata')
-            .then(response => {
+                console.log(response.data);  // Log the data to verify
                 setDatasets(response.data);
             })
             .catch(error => {
                 console.error("There was an error fetching the metadata!", error);
             });
-    }, []);
+    }, [formatFilter]);  // Add formatFilter as a dependency
 
-    const download = (filename) => {
-        // Create a link element
-        const link = document.createElement('a');
-        link.href = `http://localhost:5000/api/download/${filename}`;
-        link.download = filename;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+    const handleFormatChange = (event) => {
+        setFormatFilter(event.target.value);
     };
-
-    // const handleLogout = async () => {
-    //     try {
-    //         const currentUser = JSON.parse(localStorage.getItem('currentUser'));
-    //         if (currentUser && currentUser.id) {
-    //             await fetch('http://localhost:5000/api/update_login_state', {
-    //                 method: 'POST',
-    //                 headers: {
-    //                     'Content-Type': 'application/json',
-    //                 },
-    //                 body: JSON.stringify({
-    //                     user_id: currentUser.id,
-    //                     is_logged_in: false,
-    //                 }),
-    //             });
-    //             // Clear the local storage and update state
-    //             localStorage.removeItem('currentUser');
-    //             setLoggedIn(false);
-    //             navigate('/login');
-    //         }
-    //     } catch (error) {
-    //         console.error('Error:', error);
-    //     }
-    // };
 
     return (
         <div className="dashboard-container">
             <Typography variant="h4" className="dashboard-title">
                 Datasets
             </Typography>
-            {/* {!loggedIn ? (
-                <div className="dashboard-buttons">
-                    <Link to="/login" style={{ textDecoration: 'none' }}>
-                        <Button variant="contained" color="primary" className="dashboard-button">Login</Button>
-                    </Link>
-                    <Link to="/signup" style={{ textDecoration: 'none' }}>
-                        <Button variant="contained" color="secondary" className="dashboard-button">Signup</Button>
-                    </Link>
-                </div>
-            ) : (
-                <Button variant="contained" color="secondary" className="dashboard-button" onClick={handleLogout}>Logout</Button>
-            )} */}
+
+            {/* Sort By Format Dropdown */}
+            <div className="dashboard-sortby-container">
+                <Typography variant="h6">Sort By:</Typography>
+                <Select
+                    value={formatFilter}
+                    onChange={handleFormatChange}
+                    className="dashboard-sortby-select"
+                >
+                    <MenuItem value="all">All</MenuItem>
+                    <MenuItem value="csv">.csv</MenuItem>
+                    <MenuItem value="xml">.xml</MenuItem>
+                    <MenuItem value="json">.json</MenuItem>
+                    <MenuItem value="docx">.docx</MenuItem>
+                </Select>
+            </div>
+
             <TableContainer component={Paper} className="dashboard-table-container">
                 <Table>
                     <TableHead>
                         <TableRow className="dashboard-table-header">
-                            <TableCell className="dashboard-table-header-cell">Name</TableCell>
-                            <TableCell className="dashboard-table-header-cell" align="right">Actions</TableCell>
+                            <TableCell >Name</TableCell>
+                            <TableCell  align="right">Actions</TableCell>
                         </TableRow>
                     </TableHead>
                     <TableBody>
@@ -93,9 +59,13 @@ const Dashboard = () => {
                                 <TableCell component="th" scope="row">
                                     {dataset.dataset_name}
                                 </TableCell>
-                                <TableCell align="right">
-                                    <Button variant="contained" color="primary" className="dashboard-button">View</Button>
-                                    <Button variant="contained" color="secondary" className="dashboard-button" onClick={() =>download(dataset.dataset_name)}>Download</Button>
+                                <TableCell>
+                                    <Button variant="contained" color="primary" className="view-button">
+                                        View
+                                    </Button>
+                                    <Button variant="contained" color="secondary" className="dashboard-button">
+                                        Download
+                                    </Button>
                                 </TableCell>
                             </TableRow>
                         ))}

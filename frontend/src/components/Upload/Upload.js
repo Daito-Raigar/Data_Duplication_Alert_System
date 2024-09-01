@@ -1,10 +1,15 @@
 import React, { useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import './Upload.css';
 
-const UploadPage = () => {
+const UploadPage = () => {  // Accept username as a prop
+    const location = useLocation();
+    const username = location.state?.username || 'Admin';
+
     const [selectedFile, setSelectedFile] = useState(null);
     const [fileMetadata, setFileMetadata] = useState({});
     const [isDragging, setIsDragging] = useState(false);
+    
 
     const handleFileChange = (e) => {
         const file = e.target.files[0];
@@ -75,10 +80,13 @@ const UploadPage = () => {
 
     return (
         <div className="upload-container">
+            <div className="welcome-message">
+                <h2>Welcome, {username}</h2> {/* Display welcome message */}
+            </div>
             <div className="upload-header">
                 <h2>Uploads</h2>
                 <p>Your uploads must be 800x600</p>
-                <p>Accepted formats: JPG, PNG, PDF</p>
+                <p>Accepted formats: docx, xml, json, csv</p>
             </div>
             <div
                 className={`upload-dropzone ${isDragging ? 'dragging' : ''}`}

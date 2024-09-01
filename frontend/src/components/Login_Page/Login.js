@@ -39,38 +39,13 @@ const LoginForm = () => {
 
             const data = await response.json();
 
-            if (!response.ok) {
-                setMessage(data.message || 'An error occurred. Please try again.');
-                return;
-            }
-
-            // Uncomment if you need to handle session state updates
-            /*
-            if (data.is_logged_in) {
-                setMessage('User is already logged in on another system.');
-                return;
-            }
-
-            await fetch('http://localhost:5000/api/update_login_state', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    user_id: data.user_id,
-                    is_logged_in: true,
-                }),
-            });
-            */
-
-            const userRole = data.role;
-            if (userRole === 'admin') {
-                navigate('/AdminDash');
-            } else if (userRole === 'employee') {
-                navigate('/dashboard');
+            if (response.ok && data.role === 'admin') {
+                navigate('/upload', { state: { username } }); // Navigate to the UploadPage
+            } else if (response.ok && data.role === 'employee') {
+                // Handle employee navigation or actions
             } else {
-                setMessage('Unknown role.');
-            }
+                alert(data.message || 'Login failed');
+            }    
         } catch (error) {
             console.error('Error:', error);
             setMessage('An error occurred. Please try again.');

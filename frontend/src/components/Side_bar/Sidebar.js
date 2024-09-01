@@ -1,31 +1,32 @@
-// src/components/Sidebar.js
+// Sidebar.js
+
 import React from 'react';
 import { List, ListItem, ListItemText, Divider, Typography } from '@mui/material';
 import { Link, useNavigate } from 'react-router-dom';
 import './Sidebar.css';
 
 const Sidebar = () => {
-    const navi = useNavigate();
-    const click = () => { navi('/dashboard');}
+    const navigate = useNavigate();
+
     return (
         <div className="sidebar-container">
-            <Typography variant="h6" className="sidebar-title" onClick={click} style={{ cursor: 'pointer' }}>
+            <Typography variant="h6" className="sidebar-title" onClick={() => navigate('/dashboard')}>
                 Dashboard
             </Typography>
             <List component="nav">
-                <ListItem button component={Link} to="/settings" className="sidebar-item">
+                <ListItem className="sidebar-item" component={Link} to="/settings">
                     <ListItemText primary="Settings" />
                 </ListItem>
                 <Divider className="sidebar-divider" />
-                <ListItem button component={Link} to="/collab-work" className="sidebar-item">
+                <ListItem className="sidebar-item" component={Link} to="/collab-work">
                     <ListItemText primary="Collab Work" />
                 </ListItem>
                 <Divider className="sidebar-divider" />
-                <ListItem button component={Link} to="/upgrade" className="sidebar-item">
+                <ListItem className="sidebar-item" component={Link} to="/upgrade">
                     <ListItemText primary="Upgrade" />
                 </ListItem>
                 <Divider className="sidebar-divider" />
-                <ListItem button component={Link} to="/profile" className="sidebar-item">
+                <ListItem className="sidebar-item" component={Link} to="/profile">
                     <ListItemText primary="User Profile" />
                 </ListItem>
             </List>

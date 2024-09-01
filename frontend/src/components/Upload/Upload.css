@@ -94,3 +94,10 @@ button {
 button:hover {
     background-color: #005bb5;
 }
+
+.welcome-message {
+    margin-bottom: 20px;
+    font-size: 24px;
+    font-weight: bold;
+    color: #333;
+}
